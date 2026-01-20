@@ -28,9 +28,6 @@ scene.add(pointLight);
 const pointLightHelper = new THREE.PointLightHelper(pointLight, 20);
 scene.add(pointLightHelper);
 
-
-let radius = 3.0;
-
 // ---------- Utils ----------
 function randomInRange(min, max) {
     return Math.random() * (max - min) + min;
