@@ -1,0 +1,184 @@
+import * as THREE from "three";
+import { OrbitControls } from "jsm/controls/OrbitControls.js";
+
+// ---------- Scene Setup ----------
+const w = window.innerWidth;
+const h = window.innerHeight;
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(35, w / h, 0.1, 4000);
+camera.position.z = 1200;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(w, h);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+// ---------- Lighting ----------
+const hemiLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
+scene.add(hemiLight);
+
+const pointLight = new THREE.PointLight(0xffffff, 40000, 0, 50000);
+pointLight.position.set(0, 0, 0);
+pointLight.power = 500000;
+scene.add(pointLight);
+
+const pointLightHelper = new THREE.PointLightHelper(pointLight);
+scene.add(pointLightHelper);
+
+
+let radius = 3.0;
+
+// ---------- Utils ----------
+function randomInRange(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+// ---------- Globals ----------
+const patternGroup = new THREE.Group();
+scene.add(patternGroup);
+
+const arcs = []; // stores arc animation data
+
+// ---------- Create Pattern ----------
+function createCurvedPattern() {
+    const arcCount = 15;
+
+    for (let i = 0; i < arcCount; i++) {
+        const hue = randomInRange(200, 280);
+        const color = new THREE.Color(`hsl(${hue}, 60%, 50%)`);
+
+        const radius = randomInRange(150, 850);
+        const startDeg = randomInRange(0, 360);
+        const speed = randomInRange(0.002, 0.01);
+
+        // ----- Main Sphere (optional) -----
+        const sphereGeom = new THREE.CircleGeometry(50, 32);
+        const sphereMat = new THREE.MeshStandardMaterial({ 
+            color: 0xffffff,
+           
+            metallness: 0.1
+
+        });
+        const sphere = new THREE.Mesh(sphereGeom, sphereMat);
+
+        /*/ ----- Arc Lines -----
+        const arcGroup = new THREE.Group();
+        for (let deg = 0; deg < 350; deg++) {
+            const p1 = new THREE.Vector3(
+                radius * Math.cos(deg * Math.PI / 180),
+                radius * Math.sin(deg * Math.PI / 180),
+                0
+            );
+            const p2 = new THREE.Vector3(
+                radius * Math.cos((deg + 1) * Math.PI / 180),
+                radius * Math.sin((deg + 1) * Math.PI / 180),
+                0
+            );
+
+            const opacity = THREE.MathUtils.mapLinear(deg, 0, 350, 1, 0);
+
+            const mat = new THREE.LineBasicMaterial({
+                color,
+                transparent: true,
+                opacity
+            });
+
+            const geom = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+            const line = new THREE.Line(geom, mat);
+            arcGroup.add(line);
+        }
+
+        arcGroup.rotation.z = startDeg * Math.PI / 180;*/
+
+        // ----- Multiple Points on Arc -----
+        const pointCount = 50; // number of points per arc
+        const points = [];
+
+        for (let j = 0; j < pointCount; j++) {
+            const angleOffset = (j / pointCount) * Math.PI * 2;
+
+            const pointGeom = new THREE.SphereGeometry(6, 16, 16);
+            const pointMat = new THREE.MeshStandardMaterial({ color });
+            const point = new THREE.Mesh(pointGeom, pointMat);
+
+            // Initial position
+            point.position.set(
+                radius * Math.cos(startDeg * Math.PI / 180 + angleOffset),
+                radius * Math.sin(startDeg * Math.PI / 180 + angleOffset),
+                0
+            );
+
+            patternGroup.add(point);
+            points.push({ mesh: point, angleOffset });
+        }
+
+        // Initial sphere position
+        sphere.position.set(
+            radius * Math.cos(startDeg * Math.PI / 180),
+            radius * Math.sin(startDeg * Math.PI / 180),
+            0
+        );
+
+        patternGroup.add(sphere);
+        //patternGroup.add(arcGroup);
+
+        // Save animation data
+        arcs.push({
+            //arcGroup,
+            sphere,
+            points,
+            radius,
+            baseAngle: startDeg * Math.PI / 180,
+            speed
+        });
+    }
+}
+
+
+// ---------- Update Pattern ----------
+function updateCurvedPattern() {
+    arcs.forEach(arc => {
+        arc.baseAngle += arc.speed;
+
+        /*// Rotate line arc
+        arc.arcGroup.rotation.z = arc.baseAngle;*/
+
+        // Move main sphere
+        arc.sphere.position.set(
+            arc.radius * Math.cos(arc.baseAngle),
+            arc.radius * Math.sin(arc.baseAngle),
+            0
+        );
+
+        // Move all points
+        arc.points.forEach(p => {
+            p.mesh.position.set(
+                arc.radius * Math.cos(arc.baseAngle + p.angleOffset),
+                arc.radius * Math.sin(arc.baseAngle + p.angleOffset),
+                0
+            );
+        });
+    });
+}
+
+// ---------- Animation Loop ----------
+let lastTime = 0;
+
+function animate(time) {
+    requestAnimationFrame(animate);
+
+    if (time - lastTime < 1000 / 30) return;
+    lastTime = time;
+
+    controls.update();
+    updateCurvedPattern();
+    renderer.render(scene, camera);
+}
+
+// ---------- Init ----------
+createCurvedPattern();
+animate();
