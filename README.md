@@ -1,1 +1,1 @@
-<(https://mariajende.github.io/cc1_ws2526_02_jende_01/)>
+[View Project](https://mariajende.github.io/cc1_ws2526_02_jende_01/)
