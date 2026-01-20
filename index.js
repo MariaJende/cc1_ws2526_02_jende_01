@@ -6,8 +6,8 @@ const w = window.innerWidth;
 const h = window.innerHeight;
 const scene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(35, w / h, 0.1, 4000);
-camera.position.z = 1200;
+const camera = new THREE.PerspectiveCamera(35, w / h, 0.0001, 4000);
+camera.position.z = 600;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 renderer.setSize(w, h);
@@ -18,15 +18,14 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
 // ---------- Lighting ----------
-const hemiLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
-scene.add(hemiLight);
+/*const hemiLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.3);
+scene.add(hemiLight);*/
 
-const pointLight = new THREE.PointLight(0xffffff, 40000, 0, 50000);
+const pointLight = new THREE.PointLight(0xffffff, 50, 0, 0);
 pointLight.position.set(0, 0, 0);
-pointLight.power = 500000;
 scene.add(pointLight);
 
-const pointLightHelper = new THREE.PointLightHelper(pointLight);
+const pointLightHelper = new THREE.PointLightHelper(pointLight, 20);
 scene.add(pointLightHelper);
 
 
@@ -45,25 +44,22 @@ const arcs = []; // stores arc animation data
 
 // ---------- Create Pattern ----------
 function createCurvedPattern() {
-    const arcCount = 15;
+    const arcCount = 30;
 
     for (let i = 0; i < arcCount; i++) {
-        const hue = randomInRange(200, 280);
-        const color = new THREE.Color(`hsl(${hue}, 60%, 50%)`);
+        const hue = randomInRange(200, 360);
+        const color = new THREE.Color(`hsl(${hue}, 50%, 30%)`);
 
-        const radius = randomInRange(150, 850);
+        const radius = randomInRange(10, 200);
         const startDeg = randomInRange(0, 360);
         const speed = randomInRange(0.002, 0.01);
 
-        // ----- Main Sphere (optional) -----
-        const sphereGeom = new THREE.CircleGeometry(50, 32);
-        const sphereMat = new THREE.MeshStandardMaterial({ 
+        // ----- Main circle (optional) -----
+        const circleGeom = new THREE.CircleGeometry(1, 32);
+        const circleMat = new THREE.MeshLambertMaterial({ 
             color: 0xffffff,
-           
-            metallness: 0.1
-
         });
-        const sphere = new THREE.Mesh(sphereGeom, sphereMat);
+        const circle = new THREE.Mesh(circleGeom, circleMat);
 
         /*/ ----- Arc Lines -----
         const arcGroup = new THREE.Group();
@@ -101,8 +97,12 @@ function createCurvedPattern() {
         for (let j = 0; j < pointCount; j++) {
             const angleOffset = (j / pointCount) * Math.PI * 2;
 
-            const pointGeom = new THREE.SphereGeometry(6, 16, 16);
-            const pointMat = new THREE.MeshStandardMaterial({ color });
+            const pointGeom = new THREE.SphereGeometry(20, 32, 32);
+            const pointMat = new THREE.MeshStandardMaterial({ 
+                color,
+                metallness: 0.9,
+                roughness: 0.0,
+             });
             const point = new THREE.Mesh(pointGeom, pointMat);
 
             // Initial position
@@ -116,20 +116,20 @@ function createCurvedPattern() {
             points.push({ mesh: point, angleOffset });
         }
 
-        // Initial sphere position
-        sphere.position.set(
+        // Initial circle position
+        circle.position.set(
             radius * Math.cos(startDeg * Math.PI / 180),
             radius * Math.sin(startDeg * Math.PI / 180),
-            0
-        );
+            100
+        )
 
-        patternGroup.add(sphere);
+        patternGroup.add(circle);
         //patternGroup.add(arcGroup);
 
         // Save animation data
         arcs.push({
             //arcGroup,
-            sphere,
+            circle,
             points,
             radius,
             baseAngle: startDeg * Math.PI / 180,
@@ -147,8 +147,8 @@ function updateCurvedPattern() {
         /*// Rotate line arc
         arc.arcGroup.rotation.z = arc.baseAngle;*/
 
-        // Move main sphere
-        arc.sphere.position.set(
+        // Move main circle
+        arc.circle.position.set(
             arc.radius * Math.cos(arc.baseAngle),
             arc.radius * Math.sin(arc.baseAngle),
             0
