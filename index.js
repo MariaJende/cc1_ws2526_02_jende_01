@@ -61,35 +61,6 @@ function createCurvedPattern() {
         });
         const circle = new THREE.Mesh(circleGeom, circleMat);
 
-        /*/ ----- Arc Lines -----
-        const arcGroup = new THREE.Group();
-        for (let deg = 0; deg < 350; deg++) {
-            const p1 = new THREE.Vector3(
-                radius * Math.cos(deg * Math.PI / 180),
-                radius * Math.sin(deg * Math.PI / 180),
-                0
-            );
-            const p2 = new THREE.Vector3(
-                radius * Math.cos((deg + 1) * Math.PI / 180),
-                radius * Math.sin((deg + 1) * Math.PI / 180),
-                0
-            );
-
-            const opacity = THREE.MathUtils.mapLinear(deg, 0, 350, 1, 0);
-
-            const mat = new THREE.LineBasicMaterial({
-                color,
-                transparent: true,
-                opacity
-            });
-
-            const geom = new THREE.BufferGeometry().setFromPoints([p1, p2]);
-            const line = new THREE.Line(geom, mat);
-            arcGroup.add(line);
-        }
-
-        arcGroup.rotation.z = startDeg * Math.PI / 180;*/
-
         // ----- Multiple Points on Arc -----
         const pointCount = 50; // number of points per arc
         const points = [];
