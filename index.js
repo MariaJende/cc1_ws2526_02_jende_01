@@ -1,3 +1,5 @@
+//Inspired by https://medium.com/@banyapon/creating-an-engaging-rhythm-circle-with-creative-coding-in-three-js-2eeac9df1fe2 by Banyapon Poolsawas
+
 import * as THREE from "three";
 import { OrbitControls } from "jsm/controls/OrbitControls.js";
 
@@ -16,10 +18,6 @@ document.body.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-
-// ---------- Lighting ----------
-/*const hemiLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.3);
-scene.add(hemiLight);*/
 
 const pointLight = new THREE.PointLight(0xffffff, 50, 0, 0);
 pointLight.position.set(0, 0, 0);
